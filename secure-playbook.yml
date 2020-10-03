@@ -1,0 +1,42 @@
+# Ansible Setup
+---
+  - hosts: auditdev
+    remote_user: root
+    become: true    
+  
+    tasks:
+      - name: Install Prerequisites
+        apt: name=aptitude update_cache=yes state=latest force_apt_get=yes
+        
+      - name: Update apt
+        apt: update_cache=yes
+
+      - name: Allow SSH connections
+        ufw:
+          rule: allow
+          name: OpenSSH
+
+      - name: Deny all other incoming traffic by default
+        ufw:
+          state: enabled
+          policy: deny
+          direction: incoming
+
+      - name: Install fail2ban package
+        apt: name=fail2ban update_cache=yes state=latest force_apt_get=yes
+
+      - name: Copy fail2ban local config        
+        copy:
+          src: fail2ban.local
+          dest: /etc/fail2ban/jail.local
+          owner: root
+          group: root
+          mode: 0644        
+        notify:
+            - restart fail2ban
+
+      - name: Enable fail2ban service
+        systemd:
+          name: fail2ban
+          enabled: yes
+          state: started
