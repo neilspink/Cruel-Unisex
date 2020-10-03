@@ -4,7 +4,9 @@ Helper scripts for setup.
 
 # Ansible Setup
 
-- On workload server:
+## Option 1 - Create SSH Key using cloud platform
+
+## Option 2 - Create SSH Key on workload server
 
     ```
     useradd -m -s /bin/bash devops
@@ -16,6 +18,7 @@ Helper scripts for setup.
     systemctl restart sshd
     service sshd restart
     ```
+## Ansible Control Server Config
 
 - Copy private key to control server.
 
