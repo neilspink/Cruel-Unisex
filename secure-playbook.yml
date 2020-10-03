@@ -40,3 +40,40 @@
           name: fail2ban
           enabled: yes
           state: started
+
+      - name: install unattended-upgrades
+        apt: name=unattended-upgrades state=latest
+    
+      - name: Enable 50unattended-upgrades
+        copy:
+          dest: /etc/apt/apt.conf.d/50unattended-upgrades-local
+          content: |
+            Unattended-Upgrade::Allowed-Origins {
+              "${distro_id}:${distro_codename}";
+              "${distro_id}:${distro_codename}-security";
+              // Extended Security Maintenance; doesn't necessarily exist for
+              // every release and this system may not have it installed, but if
+              // available, the policy for updates is such that unattended-upgrades
+              // should also install from here by default.
+              "${distro_id}ESM:${distro_codename}";
+              "${distro_id}:${distro_codename}-updates";
+            };
+            Unattended-Upgrade::DevRelease "false";
+            Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+            Unattended-Upgrade::Automatic-Reboot "true";
+            Unattended-Upgrade::Automatic-Reboot-Time "02:45";
+
+      - name: Enable 20auto-upgrades
+        copy:
+          dest: /etc/apt/apt.conf.d/20auto-upgrades
+          content: |
+            APT::Periodic::Update-Package-Lists "1";
+            APT::Periodic::Download-Upgradeable-Packages "1";
+            APT::Periodic::AutocleanInterval "7";
+            APT::Periodic::Unattended-Upgrade "1";
+
+      - name: Dry run unattended upgrades
+        command: unattended-upgrades --dry-run --debug
+        become: yes
+        become_user: root
+        
